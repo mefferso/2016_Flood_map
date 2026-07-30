@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Interactive comparison of the August 2016 Baton Rouge flood inundation, FEMA's 1-percent annual-chance floodplain, flood depth, satellite imagery, and rainfall graphics."
+    />
+    <title>August 2016 Baton Rouge Flood Map</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Interactive event map</p>
+          <h1>August 2016 Baton Rouge Flood</h1>
+          <p class="subtitle">
+            Compare the estimated inundation footprint with the FEMA
+            1% annual-chance floodplain, then add flood depth, satellite,
+            and rainfall layers.
+          </p>
+        </div>
+        <button id="sidebarToggle" class="icon-button" type="button" aria-label="Toggle map controls">
+          ☰
+        </button>
+      </header>
+
+      <main class="map-layout">
+        <aside id="sidebar" class="sidebar" aria-label="Map controls">
+          <section class="panel intro-panel">
+            <div class="comparison-key">
+              <span><i class="swatch swatch-inundation"></i>2016 inundation</span>
+              <span><i class="swatch swatch-fema"></i>FEMA 1% floodplain</span>
+            </div>
+            <button id="comparisonButton" class="primary-button" type="button">
+              Show main comparison
+            </button>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Event impact</h2>
+              <span class="panel-tag">GIS layers</span>
+            </div>
+
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">Estimated 2016 inundation</span>
+                <span class="layer-source">East Baton Rouge GIS</span>
+              </span>
+              <input type="checkbox" data-layer="inundation" checked />
+            </label>
+            <label class="opacity-row" for="inundationOpacity">
+              <span>Opacity</span>
+              <input id="inundationOpacity" type="range" min="0" max="1" value="0.52" step="0.05" data-opacity="inundation" />
+            </label>
+
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">Modeled flood depth</span>
+                <span class="layer-source">August 2016 depth raster</span>
+              </span>
+              <input type="checkbox" data-layer="depth" />
+            </label>
+            <label class="opacity-row" for="depthOpacity">
+              <span>Opacity</span>
+              <input id="depthOpacity" type="range" min="0" max="1" value="0.66" step="0.05" data-opacity="depth" />
+            </label>
+
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">Sentinel-2 flood imagery</span>
+                <span class="layer-source">False-color, Aug. 14, 2016</span>
+              </span>
+              <input type="checkbox" data-layer="sentinel" />
+            </label>
+            <label class="opacity-row" for="sentinelOpacity">
+              <span>Opacity</span>
+              <input id="sentinelOpacity" type="range" min="0" max="1" value="0.78" step="0.05" data-opacity="sentinel" />
+            </label>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Flood-risk comparison</h2>
+              <span class="panel-tag">FEMA</span>
+            </div>
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">1% annual-chance floodplain</span>
+                <span class="layer-source">Current effective NFHL / “100-year”</span>
+              </span>
+              <input type="checkbox" data-layer="fema" checked />
+            </label>
+            <label class="opacity-row" for="femaOpacity">
+              <span>Opacity</span>
+              <input id="femaOpacity" type="range" min="0" max="1" value="0.28" step="0.05" data-opacity="fema" />
+            </label>
+            <p class="note">
+              The FEMA layer is the current effective National Flood Hazard Layer,
+              not a frozen copy of the map that was effective in August 2016.
+            </p>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Meteorology</h2>
+              <span class="panel-tag">NWS graphics</span>
+            </div>
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">2-day best-estimate rainfall</span>
+                <span class="layer-source">Ending Aug. 13, 2016</span>
+              </span>
+              <input type="checkbox" data-layer="rainfall" />
+            </label>
+            <label class="opacity-row" for="rainfallOpacity">
+              <span>Opacity</span>
+              <input id="rainfallOpacity" type="range" min="0" max="1" value="0.70" step="0.05" data-opacity="rainfall" />
+            </label>
+
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">Rainfall exceedance probability</span>
+                <span class="layer-source">Annual chance of the 2-day total</span>
+              </span>
+              <input type="checkbox" data-layer="aep" />
+            </label>
+            <label class="opacity-row" for="aepOpacity">
+              <span>Opacity</span>
+              <input id="aepOpacity" type="range" min="0" max="1" value="0.72" step="0.05" data-opacity="aep" />
+            </label>
+            <button id="rainfallViewButton" class="secondary-button" type="button">
+              Zoom to regional rainfall view
+            </button>
+            <p class="note">
+              These two overlays are georeferenced reference graphics rather than
+              analysis-ready raster data. Use them for event-scale context.
+            </p>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Basemap</h2>
+            </div>
+            <div class="segmented-control" role="group" aria-label="Basemap selection">
+              <button type="button" data-basemap="light" class="active">Light</button>
+              <button type="button" data-basemap="streets">Streets</button>
+              <button type="button" data-basemap="imagery">Imagery</button>
+            </div>
+            <button id="resetButton" class="secondary-button" type="button">Reset Baton Rouge view</button>
+          </section>
+
+          <section class="panel facts-panel">
+            <div class="panel-heading">
+              <h2>Why this flood stands out</h2>
+            </div>
+            <div class="fact-grid">
+              <div><strong>31+ in.</strong><span>reported near Watson</span></div>
+              <div><strong>590</strong><span>USGS high-water marks</span></div>
+              <div><strong>12</strong><span>USGS inundation maps</span></div>
+            </div>
+            <p class="source-list">
+              Sources: EBRGIS, FEMA NFHL, USGS, NWS Lower Mississippi RFC,
+              and Sentinel-2 imagery hosted through ArcGIS Online.
+            </p>
+          </section>
+        </aside>
+
+        <section class="map-stage" aria-label="Interactive flood map">
+          <div id="map"></div>
+          <div id="loadingBadge" class="loading-badge" aria-live="polite">Loading map layers…</div>
+          <div class="map-callout">
+            <strong>Presentation tip:</strong>
+            Turn on only the blue inundation and red FEMA layers first. The flooded
+            area outside the red boundary is the visual gut punch.
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/esri-leaflet@3.0.15/dist/esri-leaflet.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
