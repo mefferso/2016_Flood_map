@@ -17,6 +17,10 @@ const map = L.map("map", {
   preferCanvas: true,
 });
 
+map.createPane("meteorologyPane");
+map.getPane("meteorologyPane").style.zIndex = 350;
+map.getPane("meteorologyPane").style.pointerEvents = "none";
+
 L.control.zoom({ position: "topright" }).addTo(map);
 L.control.scale({ position: "bottomleft", imperial: true, metric: false }).addTo(map);
 
@@ -119,17 +123,29 @@ layers.sentinel = L.tileLayer(
   },
 );
 
-layers.rainfall = L.imageOverlay("assets/rainfall_2day.jpg", RAINFALL_BOUNDS, {
-  opacity: 0.7,
-  interactive: false,
-  alt: "NWS Lower Mississippi RFC two-day best-estimate rainfall ending August 13, 2016",
-});
+layers.rainfall = L.imageOverlay(
+  "https://www.weather.gov/images/lix/082016flood/__thumbs/RFC_Rainfall_2016_08_13_2day.jpg/RFC_Rainfall_2016_08_13_2day__800x600.jpg",
+  RAINFALL_BOUNDS,
+  {
+    pane: "meteorologyPane",
+    opacity: 0.7,
+    interactive: false,
+    alt: "NWS Lower Mississippi RFC two-day best-estimate rainfall ending August 13, 2016",
+    attribution: "NWS Lower Mississippi River Forecast Center",
+  },
+);
 
-layers.aep = L.imageOverlay("assets/rainfall_aep.jpg", RAINFALL_BOUNDS, {
-  opacity: 0.72,
-  interactive: false,
-  alt: "NWS Lower Mississippi RFC annual exceedance probability for the two-day rainfall ending August 13, 2016",
-});
+layers.aep = L.imageOverlay(
+  "https://www.weather.gov/images/lix/082016flood/__thumbs/RFC_Rainfall_AEP_2016_08_13_2day.jpg/RFC_Rainfall_AEP_2016_08_13_2day__800x600.jpg",
+  RAINFALL_BOUNDS,
+  {
+    pane: "meteorologyPane",
+    opacity: 0.72,
+    interactive: false,
+    alt: "NWS Lower Mississippi RFC annual exceedance probability for the two-day rainfall ending August 13, 2016",
+    attribution: "NWS Lower Mississippi River Forecast Center",
+  },
+);
 
 for (const layer of [layers.inundation, layers.fema]) {
   loadPromises.push(
@@ -167,6 +183,9 @@ function setLayerVisibility(layerName, visible) {
 
   if (visible && !map.hasLayer(layer)) {
     layer.addTo(map);
+    if (layerName === "depth" && map.getZoom() < 11) {
+      map.setZoom(11);
+    }
   } else if (!visible && map.hasLayer(layer)) {
     map.removeLayer(layer);
   }
