@@ -74,17 +74,47 @@ layers.inundation = L.esri.featureLayer({
   },
 }).addTo(map);
 
+layers.firm2012 = L.esri.featureLayer({
+  url: "https://services.maps.lsuagcenter.com/arcgis/rest/services/Floodmaps/EBR_EFF_DFIRM_20251127/MapServer/4",
+  where: "SFHA_TF = 'T'",
+  simplifyFactor: 0.45,
+  precision: 5,
+  style: {
+    color: "#d72d2d",
+    weight: 1.8,
+    opacity: 0.98,
+    fillColor: "#ef4444",
+    fillOpacity: 0.48,
+  },
+  onEachFeature(feature, layer) {
+    const p = feature.properties || {};
+    const bfe = Number.isFinite(Number(p.STATIC_BFE))
+      ? `${Number(p.STATIC_BFE).toFixed(1)} ft`
+      : "Not listed";
+    layer.bindPopup(`
+      <div class="popup-title">Event-era 1% annual-chance floodplain</div>
+      <table class="popup-table">
+        <tr><td>Effective date</td><td>June 19, 2012</td></tr>
+        <tr><td>Flood zone</td><td>${escapeHtml(p.FLD_ZONE || "Unknown")}</td></tr>
+        <tr><td>Subtype</td><td>${escapeHtml(p.ZONE_SUBTY || "—")}</td></tr>
+        <tr><td>Static BFE</td><td>${escapeHtml(bfe)}</td></tr>
+      </table>
+      <div style="margin-top:.35rem;color:#667784;font-size:.68rem;">This was the effective East Baton Rouge FIRM during the August 2016 flood.</div>
+    `);
+  },
+}).addTo(map);
+
 layers.fema = L.esri.featureLayer({
   url: "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28",
   where: "SFHA_TF = 'T'",
   simplifyFactor: 0.45,
   precision: 5,
   style: {
-    color: "#d72d2d",
+    color: "#6d28d9",
     dashArray: "7 5",
     weight: 1.7,
     opacity: 0.95,
-    fillColor: "#ef4444",
+    fillColor: "#8b5cf6",
     fillOpacity: 0.28,
   },
   onEachFeature(feature, layer) {
@@ -93,16 +123,16 @@ layers.fema = L.esri.featureLayer({
       ? `${Number(p.STATIC_BFE).toFixed(1)} ft`
       : "Not listed";
     layer.bindPopup(`
-      <div class="popup-title">FEMA 1% annual-chance floodplain</div>
+      <div class="popup-title">Current FEMA 1% annual-chance floodplain</div>
       <table class="popup-table">
         <tr><td>Flood zone</td><td>${escapeHtml(p.FLD_ZONE || "Unknown")}</td></tr>
         <tr><td>Subtype</td><td>${escapeHtml(p.ZONE_SUBTY || "—")}</td></tr>
         <tr><td>Static BFE</td><td>${escapeHtml(bfe)}</td></tr>
       </table>
-      <div style="margin-top:.35rem;color:#667784;font-size:.68rem;">Current effective FEMA NFHL.</div>
+      <div style="margin-top:.35rem;color:#667784;font-size:.68rem;">Current effective FEMA NFHL, shown in purple for reference.</div>
     `);
   },
-}).addTo(map);
+});
 
 layers.depth = L.tileLayer(
   "https://tiles.arcgis.com/tiles/u5yHfzprqJwnv49V/arcgis/rest/services/August_2016_Flood_Depth_Feet/MapServer/tile/{z}/{y}/{x}",
@@ -147,7 +177,7 @@ layers.aep = L.imageOverlay(
   },
 );
 
-for (const layer of [layers.inundation, layers.fema]) {
+for (const layer of [layers.inundation, layers.firm2012]) {
   loadPromises.push(
     new Promise((resolve) => {
       let settled = false;
@@ -201,10 +231,10 @@ function setLayerOpacity(layerName, opacity) {
   }
 
   if (typeof layer.setStyle === "function") {
-    const isFema = layerName === "fema";
+    const edgeBoost = layerName === "fema" ? 0.6 : layerName === "firm2012" ? 0.46 : 0.38;
     layer.setStyle({
       fillOpacity: opacity,
-      opacity: Math.min(1, opacity + (isFema ? 0.55 : 0.38)),
+      opacity: Math.min(1, opacity + edgeBoost),
     });
   }
 }
@@ -242,8 +272,8 @@ document.getElementById("resetButton").addEventListener("click", () => {
 });
 
 document.getElementById("comparisonButton").addEventListener("click", () => {
-  const primaryLayers = ["inundation", "fema"];
-  const secondaryLayers = ["depth", "sentinel", "rainfall", "aep"];
+  const primaryLayers = ["inundation", "firm2012"];
+  const secondaryLayers = ["fema", "depth", "sentinel", "rainfall", "aep"];
 
   primaryLayers.forEach((name) => {
     setLayerVisibility(name, true);

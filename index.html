@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Interactive comparison of the August 2016 Baton Rouge flood inundation, FEMA's 1-percent annual-chance floodplain, flood depth, satellite imagery, and rainfall graphics."
+      content="Interactive comparison of the August 2016 Baton Rouge flood inundation, the FEMA floodplain effective during the event, flood depth, satellite imagery, and rainfall graphics."
     />
     <title>August 2016 Baton Rouge Flood Map</title>
     <link
@@ -21,9 +21,9 @@
           <p class="eyebrow">Interactive event map</p>
           <h1>August 2016 Baton Rouge Flood</h1>
           <p class="subtitle">
-            Compare the estimated inundation footprint with the FEMA
-            1% annual-chance floodplain, then add flood depth, satellite,
-            and rainfall layers.
+            Compare the estimated inundation footprint with the 1% annual-chance
+            floodplain that was effective during the event, then add flood depth,
+            satellite, and rainfall layers.
           </p>
         </div>
         <button id="sidebarToggle" class="icon-button" type="button" aria-label="Toggle map controls">
@@ -36,7 +36,7 @@
           <section class="panel intro-panel">
             <div class="comparison-key">
               <span><i class="swatch swatch-inundation"></i>2016 inundation</span>
-              <span><i class="swatch swatch-fema"></i>FEMA 1% floodplain</span>
+              <span><i class="swatch swatch-fema"></i>2012 effective 1% floodplain</span>
             </div>
             <button id="comparisonButton" class="primary-button" type="button">
               Show main comparison
@@ -89,22 +89,36 @@
           <section class="panel">
             <div class="panel-heading">
               <h2>Flood-risk comparison</h2>
-              <span class="panel-tag">FEMA</span>
+              <span class="panel-tag">FEMA / LSU</span>
             </div>
+
             <label class="layer-row">
               <span class="layer-copy">
-                <span class="layer-name">1% annual-chance floodplain</span>
-                <span class="layer-source">Current effective NFHL / “100-year”</span>
+                <span class="layer-name">Event-era 1% floodplain</span>
+                <span class="layer-source">FIRM effective June 19, 2012 — in effect during August 2016</span>
               </span>
-              <input type="checkbox" data-layer="fema" checked />
+              <input type="checkbox" data-layer="firm2012" checked />
+            </label>
+            <label class="opacity-row" for="firm2012Opacity">
+              <span>Opacity</span>
+              <input id="firm2012Opacity" type="range" min="0" max="1" value="0.48" step="0.05" data-opacity="firm2012" />
+            </label>
+
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">Current 1% floodplain</span>
+                <span class="layer-source">Current effective FEMA NFHL / “100-year”</span>
+              </span>
+              <input type="checkbox" data-layer="fema" />
             </label>
             <label class="opacity-row" for="femaOpacity">
               <span>Opacity</span>
               <input id="femaOpacity" type="range" min="0" max="1" value="0.28" step="0.05" data-opacity="fema" />
             </label>
             <p class="note">
-              The FEMA layer is the current effective National Flood Hazard Layer,
-              not a frozen copy of the map that was effective in August 2016.
+              The main comparison uses the East Baton Rouge FIRM effective in 2012,
+              which was the effective map during the 2016 flood. The current NFHL is
+              included separately so later map changes do not get mixed into that comparison.
             </p>
           </section>
 
@@ -167,8 +181,8 @@
               <div><strong>12</strong><span>USGS inundation maps</span></div>
             </div>
             <p class="source-list">
-              Sources: EBRGIS, FEMA NFHL, USGS, NWS Lower Mississippi RFC,
-              and Sentinel-2 imagery hosted through ArcGIS Online.
+              Sources: EBRGIS, LSU AgCenter, FEMA NFHL, USGS, NWS Lower
+              Mississippi RFC, and Sentinel-2 imagery hosted through ArcGIS Online.
             </p>
           </section>
         </aside>
@@ -178,8 +192,8 @@
           <div id="loadingBadge" class="loading-badge" aria-live="polite">Loading map layers…</div>
           <div class="map-callout">
             <strong>Presentation tip:</strong>
-            Turn on only the blue inundation and red FEMA layers first. The flooded
-            area outside the red boundary is the visual gut punch.
+            Start with only the blue inundation and the event-era red floodplain.
+            Flooding outside the mapped 1% floodplain is the visual gut punch.
           </div>
         </section>
       </main>
