@@ -5,21 +5,12 @@ const BATON_ROUGE_VIEW = {
   zoom: 10,
 };
 
-const RAINFALL_BOUNDS = L.latLngBounds(
-  [28.6, -94.55],
-  [33.45, -88.0],
-);
-
 const map = L.map("map", {
   center: BATON_ROUGE_VIEW.center,
   zoom: BATON_ROUGE_VIEW.zoom,
   zoomControl: false,
   preferCanvas: true,
 });
-
-map.createPane("meteorologyPane");
-map.getPane("meteorologyPane").style.zIndex = 350;
-map.getPane("meteorologyPane").style.pointerEvents = "none";
 
 L.control.zoom({ position: "topright" }).addTo(map);
 L.control.scale({ position: "bottomleft", imperial: true, metric: false }).addTo(map);
@@ -153,30 +144,6 @@ layers.sentinel = L.tileLayer(
   },
 );
 
-layers.rainfall = L.imageOverlay(
-  "https://www.weather.gov/images/lix/082016flood/__thumbs/RFC_Rainfall_2016_08_13_2day.jpg/RFC_Rainfall_2016_08_13_2day__800x600.jpg",
-  RAINFALL_BOUNDS,
-  {
-    pane: "meteorologyPane",
-    opacity: 0.7,
-    interactive: false,
-    alt: "NWS Lower Mississippi RFC two-day best-estimate rainfall ending August 13, 2016",
-    attribution: "NWS Lower Mississippi River Forecast Center",
-  },
-);
-
-layers.aep = L.imageOverlay(
-  "https://www.weather.gov/images/lix/082016flood/__thumbs/RFC_Rainfall_AEP_2016_08_13_2day.jpg/RFC_Rainfall_AEP_2016_08_13_2day__800x600.jpg",
-  RAINFALL_BOUNDS,
-  {
-    pane: "meteorologyPane",
-    opacity: 0.72,
-    interactive: false,
-    alt: "NWS Lower Mississippi RFC annual exceedance probability for the two-day rainfall ending August 13, 2016",
-    attribution: "NWS Lower Mississippi River Forecast Center",
-  },
-);
-
 for (const layer of [layers.inundation, layers.firm2012]) {
   loadPromises.push(
     new Promise((resolve) => {
@@ -273,7 +240,7 @@ document.getElementById("resetButton").addEventListener("click", () => {
 
 document.getElementById("comparisonButton").addEventListener("click", () => {
   const primaryLayers = ["inundation", "firm2012"];
-  const secondaryLayers = ["fema", "depth", "sentinel", "rainfall", "aep"];
+  const secondaryLayers = ["fema", "depth", "sentinel"];
 
   primaryLayers.forEach((name) => {
     setLayerVisibility(name, true);
@@ -288,10 +255,6 @@ document.getElementById("comparisonButton").addEventListener("click", () => {
   });
 
   map.flyTo(BATON_ROUGE_VIEW.center, BATON_ROUGE_VIEW.zoom, { duration: 0.7 });
-});
-
-document.getElementById("rainfallViewButton").addEventListener("click", () => {
-  map.fitBounds(RAINFALL_BOUNDS, { padding: [20, 20], animate: true });
 });
 
 const sidebar = document.getElementById("sidebar");
