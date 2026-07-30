@@ -1,6 +1,6 @@
 # August 2016 Baton Rouge Flood Map
 
-A presentation-focused interactive map comparing the estimated August 2016 flood inundation footprint in East Baton Rouge Parish with FEMA's current effective 1-percent annual-chance floodplain.
+A presentation-focused interactive map comparing the estimated August 2016 flood inundation footprint in East Baton Rouge Parish with the FEMA 1-percent annual-chance floodplain that was effective during the event.
 
 ## Live site
 
@@ -11,7 +11,8 @@ After GitHub Pages deploys, the site will be available at:
 ## Toggleable layers
 
 - **Estimated August 2016 inundation** — East Baton Rouge GIS hosted feature layer
-- **FEMA 1% annual-chance floodplain** — current effective National Flood Hazard Layer, filtered to Special Flood Hazard Areas
+- **Event-era FEMA 1% annual-chance floodplain** — East Baton Rouge FIRM effective June 19, 2012, and therefore effective during August 2016
+- **Current FEMA 1% annual-chance floodplain** — current effective National Flood Hazard Layer, included separately for reference
 - **August 2016 modeled flood depth** — cached ArcGIS raster tiles
 - **Sentinel-2 false-color imagery** — August 14, 2016 satellite scene
 - **NWS two-day best-estimate rainfall** — georeferenced reference graphic
@@ -21,15 +22,18 @@ After GitHub Pages deploys, the site will be available at:
 ## Important interpretation notes
 
 - The inundation polygon is an **estimate**, compiled by East Baton Rouge GIS from emergency-response calls, rescue points, public-service requests, damage assessments, debris routes, road closures, imagery, FEMA flood-hazard data, and public feedback.
-- The FEMA layer is the **current effective NFHL**, not a frozen copy of the FIRM that was effective during August 2016.
+- The main comparison uses the East Baton Rouge DFIRM effective June 19, 2012, which was the effective FIRM during the August 2016 event.
+- The current FEMA NFHL layer is a separate optional overlay and should not be confused with the event-era floodplain.
 - The NWS rainfall overlays are georeferenced presentation graphics. They are useful for regional context but should not be treated as analysis-ready raster data.
 
 ## Data and service sources
 
 - East Baton Rouge GIS estimated inundation service: `https://services.arcgis.com/KYvXadMcgf0K1EzK/ArcGIS/rest/services/Estimated_Flood_Inundation_Area/FeatureServer/0`
-- FEMA NFHL flood-hazard zones: `https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28`
+- East Baton Rouge event-era DFIRM flood-hazard area: `https://services.maps.lsuagcenter.com/arcgis/rest/services/Floodmaps/EBR_EFF_DFIRM_20251127/MapServer/4`
+- FEMA current NFHL flood-hazard zones: `https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28`
 - August 2016 flood-depth tiles: `https://tiles.arcgis.com/tiles/u5yHfzprqJwnv49V/arcgis/rest/services/August_2016_Flood_Depth_Feet/MapServer`
 - Sentinel-2 flood imagery tiles: `https://tiles.arcgis.com/tiles/njxlOVQKvDzk10uN/arcgis/rest/services/2016_Louisiana_Flood_Sentinel/MapServer`
+- NWS LMRFC rainfall graphics: `https://www.weather.gov/lix/August2016flood`
 - Event context: USGS Scientific Investigations Report 2017-5005 and associated data release
 
 ## Local preview
