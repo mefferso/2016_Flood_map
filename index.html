@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Interactive comparison of the August 2016 Baton Rouge flood inundation, the FEMA floodplain effective during the event, flood depth, satellite imagery, and rainfall graphics."
+      content="Interactive comparison of the August 2016 Baton Rouge flood inundation, the FEMA floodplain effective during the event, flood depth, and satellite imagery."
     />
     <title>August 2016 Baton Rouge Flood Map</title>
     <link
@@ -22,8 +22,8 @@
           <h1>August 2016 Baton Rouge Flood</h1>
           <p class="subtitle">
             Compare the estimated inundation footprint with the 1% annual-chance
-            floodplain that was effective during the event, then add flood depth,
-            satellite, and rainfall layers.
+            floodplain that was effective during the event, then add flood-depth
+            and satellite-imagery layers.
           </p>
         </div>
         <button id="sidebarToggle" class="icon-button" type="button" aria-label="Toggle map controls">
@@ -124,43 +124,6 @@
 
           <section class="panel">
             <div class="panel-heading">
-              <h2>Meteorology</h2>
-              <span class="panel-tag">NWS graphics</span>
-            </div>
-            <label class="layer-row">
-              <span class="layer-copy">
-                <span class="layer-name">2-day best-estimate rainfall</span>
-                <span class="layer-source">Ending Aug. 13, 2016</span>
-              </span>
-              <input type="checkbox" data-layer="rainfall" />
-            </label>
-            <label class="opacity-row" for="rainfallOpacity">
-              <span>Opacity</span>
-              <input id="rainfallOpacity" type="range" min="0" max="1" value="0.70" step="0.05" data-opacity="rainfall" />
-            </label>
-
-            <label class="layer-row">
-              <span class="layer-copy">
-                <span class="layer-name">Rainfall exceedance probability</span>
-                <span class="layer-source">Annual chance of the 2-day total</span>
-              </span>
-              <input type="checkbox" data-layer="aep" />
-            </label>
-            <label class="opacity-row" for="aepOpacity">
-              <span>Opacity</span>
-              <input id="aepOpacity" type="range" min="0" max="1" value="0.72" step="0.05" data-opacity="aep" />
-            </label>
-            <button id="rainfallViewButton" class="secondary-button" type="button">
-              Zoom to regional rainfall view
-            </button>
-            <p class="note">
-              These two overlays are georeferenced reference graphics rather than
-              analysis-ready raster data. Use them for event-scale context.
-            </p>
-          </section>
-
-          <section class="panel">
-            <div class="panel-heading">
               <h2>Basemap</h2>
             </div>
             <div class="segmented-control" role="group" aria-label="Basemap selection">
@@ -169,21 +132,6 @@
               <button type="button" data-basemap="imagery">Imagery</button>
             </div>
             <button id="resetButton" class="secondary-button" type="button">Reset Baton Rouge view</button>
-          </section>
-
-          <section class="panel facts-panel">
-            <div class="panel-heading">
-              <h2>Why this flood stands out</h2>
-            </div>
-            <div class="fact-grid">
-              <div><strong>31+ in.</strong><span>reported near Watson</span></div>
-              <div><strong>590</strong><span>USGS high-water marks</span></div>
-              <div><strong>12</strong><span>USGS inundation maps</span></div>
-            </div>
-            <p class="source-list">
-              Sources: EBRGIS, LSU AgCenter, FEMA NFHL, USGS, NWS Lower
-              Mississippi RFC, and Sentinel-2 imagery hosted through ArcGIS Online.
-            </p>
           </section>
         </aside>
 
