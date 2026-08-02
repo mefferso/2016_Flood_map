@@ -276,9 +276,11 @@ async function findAugust2016LouisianaEvent() {
       const name = String(firstValue(event, ["event_name", "eventName", "name", "title"]) || "");
       const normalized = name.toLowerCase();
       let score = 0;
-      if (normalized.includes("louisiana")) score += 4;
+      const isLouisiana = normalized.includes("louisiana") || /\bla\b/.test(normalized);
+      const isAugust = normalized.includes("august") || /\baug\b/.test(normalized);
+      if (isLouisiana) score += 4;
       if (normalized.includes("2016")) score += 3;
-      if (normalized.includes("august")) score += 3;
+      if (isAugust) score += 3;
       if (normalized.includes("flood")) score += 1;
       return { event, name, score };
     })
