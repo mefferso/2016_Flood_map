@@ -5,13 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Interactive comparison of the August 2016 Baton Rouge flood inundation, the FEMA floodplain effective during the event, flood depth, and satellite imagery."
+      content="Interactive comparison of August 2016 flood inundation, modeled flood depth, surveyed high-water marks, and event-era floodplains across East Baton Rouge and Livingston Parishes."
     />
     <title>August 2016 Baton Rouge Flood Map</title>
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -19,11 +16,11 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">Interactive event map</p>
-          <h1>August 2016 Baton Rouge Flood</h1>
+          <h1>August 2016 Baton Rouge–Livingston Flood</h1>
           <p class="subtitle">
-            Compare the estimated inundation footprint with the 1% annual-chance
-            floodplain that was effective during the event, then add flood-depth
-            and satellite-imagery layers.
+            Compare the estimated and modeled 2016 inundation with the 1% annual-chance
+            floodplains that were effective during the event, then explore modeled depth
+            and USGS-surveyed high-water marks.
           </p>
         </div>
         <button id="sidebarToggle" class="icon-button" type="button" aria-label="Toggle map controls">
@@ -36,23 +33,23 @@
           <section class="panel intro-panel">
             <div class="comparison-key">
               <span><i class="swatch swatch-inundation"></i>2016 inundation</span>
-              <span><i class="swatch swatch-fema"></i>2012 effective 1% floodplain</span>
+              <span><i class="swatch swatch-fema"></i>Event-era 1% floodplain</span>
             </div>
             <button id="comparisonButton" class="primary-button" type="button">
-              Show main comparison
+              Show two-parish comparison
             </button>
           </section>
 
           <section class="panel">
             <div class="panel-heading">
-              <h2>Event impact</h2>
-              <span class="panel-tag">GIS layers</span>
+              <h2>2016 flood impact</h2>
+              <span class="panel-tag">Event layers</span>
             </div>
 
             <label class="layer-row">
               <span class="layer-copy">
-                <span class="layer-name">Estimated 2016 inundation</span>
-                <span class="layer-source">East Baton Rouge GIS</span>
+                <span class="layer-name">EBR estimated inundation</span>
+                <span class="layer-source">Response-compiled East Baton Rouge GIS footprint</span>
               </span>
               <input type="checkbox" data-layer="inundation" checked />
             </label>
@@ -63,45 +60,72 @@
 
             <label class="layer-row">
               <span class="layer-copy">
+                <span class="layer-name">Modeled 2016 inundation extent</span>
+                <span class="layer-source">Amite River Basin model — includes Livingston Parish</span>
+              </span>
+              <input type="checkbox" data-layer="modeledExtent" checked />
+            </label>
+            <label class="opacity-row" for="modeledExtentOpacity">
+              <span>Opacity</span>
+              <input id="modeledExtentOpacity" type="range" min="0" max="1" value="0.42" step="0.05" data-opacity="modeledExtent" />
+            </label>
+
+            <label class="layer-row">
+              <span class="layer-copy">
                 <span class="layer-name">Modeled flood depth</span>
-                <span class="layer-source">August 2016 depth raster</span>
+                <span class="layer-source">Feet above ground across the Amite River Basin</span>
               </span>
               <input type="checkbox" data-layer="depth" />
             </label>
             <label class="opacity-row" for="depthOpacity">
               <span>Opacity</span>
-              <input id="depthOpacity" type="range" min="0" max="1" value="0.66" step="0.05" data-opacity="depth" />
+              <input id="depthOpacity" type="range" min="0" max="1" value="0.72" step="0.05" data-opacity="depth" />
             </label>
 
             <label class="layer-row">
               <span class="layer-copy">
-                <span class="layer-name">Sentinel-2 flood imagery</span>
-                <span class="layer-source">False-color, Aug. 14, 2016</span>
+                <span class="layer-name">USGS surveyed high-water marks</span>
+                <span class="layer-source">Physical evidence collected after the August 2016 flood</span>
               </span>
-              <input type="checkbox" data-layer="sentinel" />
+              <input type="checkbox" data-layer="highWaterMarks" />
             </label>
-            <label class="opacity-row" for="sentinelOpacity">
-              <span>Opacity</span>
-              <input id="sentinelOpacity" type="range" min="0" max="1" value="0.78" step="0.05" data-opacity="sentinel" />
-            </label>
+            <p id="hwmStatus" class="layer-status" aria-live="polite"></p>
+
+            <p class="note">
+              Livingston Parish did not publish the same response-compiled polygon used by East Baton Rouge.
+              Its 2016 inundation is shown from the basin-wide modeled depth raster; the “extent” layer is a
+              single-color rendering of every modeled flooded cell.
+            </p>
           </section>
 
           <section class="panel">
             <div class="panel-heading">
               <h2>Flood-risk comparison</h2>
-              <span class="panel-tag">FEMA / LSU</span>
+              <span class="panel-tag">Event-era DFIRMs</span>
             </div>
 
             <label class="layer-row">
               <span class="layer-copy">
-                <span class="layer-name">Event-era 1% floodplain</span>
-                <span class="layer-source">FIRM effective June 19, 2012 — in effect during August 2016</span>
+                <span class="layer-name">EBR event-era 1% floodplain</span>
+                <span class="layer-source">FIRM effective June 19, 2012</span>
               </span>
               <input type="checkbox" data-layer="firm2012" checked />
             </label>
             <label class="opacity-row" for="firm2012Opacity">
               <span>Opacity</span>
-              <input id="firm2012Opacity" type="range" min="0" max="1" value="0.48" step="0.05" data-opacity="firm2012" />
+              <input id="firm2012Opacity" type="range" min="0" max="1" value="0.38" step="0.05" data-opacity="firm2012" />
+            </label>
+
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">Livingston event-era 1% floodplain</span>
+                <span class="layer-source">FIRM effective April 3, 2012</span>
+              </span>
+              <input type="checkbox" data-layer="livingstonFirm2012" checked />
+            </label>
+            <label class="opacity-row" for="livingstonFirm2012Opacity">
+              <span>Opacity</span>
+              <input id="livingstonFirm2012Opacity" type="range" min="0" max="1" value="0.38" step="0.05" data-opacity="livingstonFirm2012" />
             </label>
 
             <label class="layer-row">
@@ -113,12 +137,12 @@
             </label>
             <label class="opacity-row" for="femaOpacity">
               <span>Opacity</span>
-              <input id="femaOpacity" type="range" min="0" max="1" value="0.28" step="0.05" data-opacity="fema" />
+              <input id="femaOpacity" type="range" min="0" max="1" value="0.24" step="0.05" data-opacity="fema" />
             </label>
             <p class="note">
-              The main comparison uses the East Baton Rouge FIRM effective in 2012,
-              which was the effective map during the 2016 flood. The current NFHL is
-              included separately so later map changes do not get mixed into that comparison.
+              The red and orange layers are the parish DFIRMs that were legally effective in August 2016.
+              The current FEMA layer remains separate so later map revisions are never confused with the
+              historical comparison.
             </p>
           </section>
 
@@ -131,17 +155,25 @@
               <button type="button" data-basemap="streets">Streets</button>
               <button type="button" data-basemap="imagery">Imagery</button>
             </div>
-            <button id="resetButton" class="secondary-button" type="button">Reset Baton Rouge view</button>
+            <button id="resetButton" class="secondary-button" type="button">Reset regional view</button>
           </section>
         </aside>
 
         <section class="map-stage" aria-label="Interactive flood map">
           <div id="map"></div>
           <div id="loadingBadge" class="loading-badge" aria-live="polite">Loading map layers…</div>
+          <div id="depthLegend" class="map-legend depth-legend hidden" aria-label="Modeled flood depth legend">
+            <div class="legend-heading">Modeled flood depth</div>
+            <div id="depthLegendContent">
+              <div class="legend-gradient" aria-hidden="true"></div>
+              <div class="legend-ticks"><span>Shallow</span><span>Deeper</span></div>
+              <div class="legend-note">Feet above ground</div>
+            </div>
+          </div>
           <div class="map-callout">
             <strong>Presentation tip:</strong>
-            Start with only the blue inundation and the event-era red floodplain.
-            Flooding outside the mapped 1% floodplain is the visual gut punch.
+            Use “Show two-parish comparison,” then switch the modeled depth on. The event-era
+            floodplain outlines make the flooding beyond the mapped 1% zones painfully obvious.
           </div>
         </section>
       </main>
