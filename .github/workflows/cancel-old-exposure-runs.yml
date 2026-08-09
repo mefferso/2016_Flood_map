@@ -1,0 +1,28 @@
+name: Cancel obsolete exposure runs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cancel-old-exposure-runs.yml'
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel obsolete runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for RUN in 31301947645 31302014496; do
+            echo "Cancelling $RUN"
+            curl -sS -X POST \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${RUN}/cancel" || true
+          done
