@@ -1,0 +1,47 @@
+name: Inspect Comite FIM source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/inspect-comite-fim.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect ScienceBase WMS and files
+        shell: bash
+        run: |
+          set -x
+          ITEM=5b28123ae4b0592076260622
+          WMS="https://www.sciencebase.gov/catalogMaps/mapping/ows/${ITEM}?service=wms&request=getcapabilities&version=1.3.0"
+          curl -L -sS -D headers.txt "$WMS" -o capabilities.xml || true
+          echo '--- HEADERS ---'
+          cat headers.txt || true
+          echo '--- CAPABILITIES FIRST 80 LINES ---'
+          head -80 capabilities.xml || true
+          echo '--- LAYER NAMES ---'
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          p=Path('capabilities.xml')
+          text=p.read_text(errors='ignore') if p.exists() else ''
+          print('bytes', len(text))
+          for name in re.findall(r'<(?:\w+:)?Name>(.*?)</(?:\w+:)?Name>', text):
+              print(name)
+          PY
+          echo '--- DIRECT FILE HEAD ---'
+          curl -L -sS -I "https://www.sciencebase.gov/catalog/file/get/${ITEM}?name=Amite_Comite_Maps104_127.zip" || true
+
+      - name: Upload diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: comite-fim-diagnostics
+          path: |
+            capabilities.xml
+            headers.txt
