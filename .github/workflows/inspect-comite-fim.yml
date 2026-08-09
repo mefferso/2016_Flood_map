@@ -14,36 +14,35 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     steps:
-      - name: Inspect ScienceBase item and WMS links
+      - name: Inspect ScienceBase range support
         shell: bash
         run: |
           set -x
           ITEM=5b28123ae4b0592076260622
           curl -L -sS "https://www.sciencebase.gov/catalog/item/${ITEM}?format=json" -o item.json
-          python - <<'PY'
+          URL=$(python - <<'PY'
           import json
           d=json.load(open('item.json'))
-          print('distributionLinks:')
-          for x in d.get('distributionLinks',[]): print(x)
-          print('files:')
-          for x in d.get('files',[]):
-              print({k:x.get(k) for k in ('name','url','pathOnDisk','size','contentType','s3Object')})
+          for f in d.get('files',[]):
+              if f.get('name') == 'Amite_Comite_Maps104_127.zip':
+                  print(f['url']); break
           PY
-
-          OLD_WMS="https://www.sciencebase.gov/catalogMaps/mapping/ows/${ITEM}?service=wms&request=getcapabilities&version=1.3.0"
-          curl -L -sS -D headers.txt "$OLD_WMS" -o capabilities.xml || true
-          echo '--- OLD WMS STATUS ---'
-          head -1 headers.txt || true
-          head -10 capabilities.xml || true
-
-          echo '--- DIRECT FILE HEAD ---'
-          curl -L -sS -I "https://www.sciencebase.gov/catalog/file/get/${ITEM}?name=Amite_Comite_Maps104_127.zip" | head -20 || true
+          )
+          echo "$URL"
+          set +e
+          curl -L -r 0-0 --max-filesize 2 -D range_headers.txt "$URL" -o range.bin
+          RC=$?
+          set -e
+          echo "curl rc=$RC"
+          cat range_headers.txt || true
+          wc -c range.bin || true
+          xxd -l 16 range.bin || true
 
       - name: Upload diagnostics
         uses: actions/upload-artifact@v4
         with:
-          name: comite-fim-diagnostics
+          name: comite-fim-range-diagnostics
           path: |
             item.json
-            capabilities.xml
-            headers.txt
+            range_headers.txt
+            range.bin
