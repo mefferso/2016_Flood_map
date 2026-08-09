@@ -91,3 +91,13 @@ for (const input of stageInputs) {
     map.flyTo([30.535, -91.03], Math.max(map.getZoom(), 11), { duration: 0.65 });
   });
 }
+
+const opacityControl = document.getElementById("comiteFimOpacity");
+if (opacityControl) {
+  opacityControl.addEventListener("input", (event) => {
+    const opacity = Number(event.target.value);
+    for (const key of Object.keys(COMITE_FIM_SCENARIOS)) {
+      layers[key].setOpacity(opacity);
+    }
+  });
+}
