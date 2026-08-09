@@ -161,3 +161,68 @@ if (opacityControl) {
     }
   });
 }
+
+function formatExposureCount(value) {
+  return Number(value).toLocaleString("en-US");
+}
+
+function ensureExposureCountElements() {
+  for (const input of stageInputs) {
+    const copy = input.closest(".layer-row")?.querySelector(".layer-copy");
+    if (!copy || copy.querySelector(".exposure-count")) continue;
+    const count = document.createElement("span");
+    count.className = "layer-source exposure-count";
+    count.dataset.exposureKey = input.dataset.layer;
+    count.textContent = "Residential exposure count loading…";
+    copy.appendChild(count);
+  }
+
+  const panel = stageInputs[0]?.closest(".panel");
+  if (panel && !panel.querySelector(".exposure-caveat")) {
+    const caveat = document.createElement("p");
+    caveat.className = "note exposure-caveat";
+    caveat.innerHTML =
+      "<strong>Structure-count note:</strong> Counts use FEMA USA Structures as a modern inventory and a representative point for each structure. They show <strong>present-day residential exposure</strong> inside each modeled footprint—not an official count of homes flooded in August 2016.";
+    panel.appendChild(caveat);
+  }
+}
+
+async function loadStructureExposureCounts() {
+  ensureExposureCountElements();
+
+  try {
+    const response = await fetch("data/comite-fim/exposure_counts.json", { cache: "no-cache" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json();
+
+    for (const [key, scenario] of Object.entries(COMITE_FIM_SCENARIOS)) {
+      const item = payload?.scenarios?.[String(scenario.comite)];
+      const target = document.querySelector(`[data-exposure-key="${key}"]`);
+      if (!item || !target) continue;
+
+      const residential = formatExposureCount(item.residential_structures);
+      const delta = item.residential_delta_vs_previous;
+      const deltaText =
+        delta === null || delta === undefined
+          ? "baseline stage"
+          : `${delta >= 0 ? "+" : ""}${formatExposureCount(delta)} vs prior stage`;
+
+      target.innerHTML =
+        `<strong>${residential}</strong> present-day residential structures in footprint · ${deltaText}`;
+
+      const ebr = item.by_parish?.["22033"]?.residential_structures ?? 0;
+      const liv = item.by_parish?.["22063"]?.residential_structures ?? 0;
+      target.title =
+        `Residential exposure — East Baton Rouge: ${formatExposureCount(ebr)}; ` +
+        `Livingston: ${formatExposureCount(liv)}. All primary structures: ` +
+        `${formatExposureCount(item.primary_structures)}.`;
+    }
+  } catch (error) {
+    for (const el of document.querySelectorAll(".exposure-count")) {
+      el.textContent = "Residential exposure count unavailable";
+    }
+    console.warn("Could not load Comite structure exposure counts:", error);
+  }
+}
+
+loadStructureExposureCounts();
