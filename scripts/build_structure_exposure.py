@@ -68,9 +68,28 @@ def epoch_ms_to_iso(value):
         return None
 
 
-def load_fema_structures() -> tuple[list[dict], dict]:
+def load_scenario_geometry(stage: int):
+    path = DATA_DIR / f"comite{stage}.geojson"
+    payload = json.loads(path.read_text())
+    geoms = [shape(feature["geometry"]) for feature in payload.get("features", []) if feature.get("geometry")]
+    if not geoms:
+        raise RuntimeError(f"No geometry found in {path}")
+    geom = unary_union(geoms)
+    if geom.is_empty:
+        raise RuntimeError(f"Scenario geometry is empty: {path}")
+    return geom
+
+
+def load_fema_structures(bounds: tuple[float, float, float, float]) -> tuple[list[dict], dict]:
     metadata = request_json(FEMA_LAYER, {"f": "json"})
     where = "FIPS IN ('22033','22063')"
+    minx, miny, maxx, maxy = bounds
+    spatial_params = {
+        "geometry": f"{minx},{miny},{maxx},{maxy}",
+        "geometryType": "esriGeometryEnvelope",
+        "inSR": "4326",
+        "spatialRel": "esriSpatialRelIntersects",
+    }
 
     count_payload = request_json(
         f"{FEMA_LAYER}/query",
@@ -78,11 +97,15 @@ def load_fema_structures() -> tuple[list[dict], dict]:
             "f": "json",
             "where": where,
             "returnCountOnly": "true",
+            **spatial_params,
         },
         post=True,
     )
     expected = int(count_payload.get("count", 0))
-    print(f"FEMA structures expected for EBR + Livingston: {expected:,}")
+    print(
+        "FEMA structures expected inside USGS-model bounding box "
+        f"for EBR + Livingston: {expected:,}"
+    )
 
     fields = "OBJECTID,FIPS,OCC_CLS,PRIM_OCC,OUTBLDG,LONGITUDE,LATITUDE"
     records: list[dict] = []
@@ -99,6 +122,7 @@ def load_fema_structures() -> tuple[list[dict], dict]:
                 "orderByFields": "OBJECTID",
                 "resultOffset": str(offset),
                 "resultRecordCount": str(PAGE_SIZE),
+                **spatial_params,
             },
             post=True,
         )
@@ -112,8 +136,6 @@ def load_fema_structures() -> tuple[list[dict], dict]:
                 lon = float(a.get("LONGITUDE"))
                 lat = float(a.get("LATITUDE"))
             except (TypeError, ValueError):
-                continue
-            if not (-92.0 < lon < -90.0 and 29.5 < lat < 31.5):
                 continue
             a["_lon"] = lon
             a["_lat"] = lat
@@ -136,7 +158,8 @@ def load_fema_structures() -> tuple[list[dict], dict]:
         "service_item_id": "0ec8512ad21e4bb987d7e848d14e7e24",
         "service_name": metadata.get("name"),
         "last_edit": epoch_ms_to_iso(editing.get("lastEditDate")),
-        "record_count_ebr_livingston": len(records),
+        "record_count_in_model_bbox": len(records),
+        "query_bounds_wgs84": [minx, miny, maxx, maxy],
     }
     return records, source_meta
 
@@ -152,20 +175,10 @@ def is_residential(record: dict) -> bool:
     return "residential" in occ or "residential" in prim
 
 
-def load_scenario_geometry(stage: int):
-    path = DATA_DIR / f"comite{stage}.geojson"
-    payload = json.loads(path.read_text())
-    geoms = [shape(feature["geometry"]) for feature in payload.get("features", []) if feature.get("geometry")]
-    if not geoms:
-        raise RuntimeError(f"No geometry found in {path}")
-    geom = unary_union(geoms)
-    if geom.is_empty:
-        raise RuntimeError(f"Scenario geometry is empty: {path}")
-    return geom
-
-
 def main() -> None:
-    records, fema_meta = load_fema_structures()
+    scenario_geometries = {stage: load_scenario_geometry(stage) for stage in SCENARIOS}
+    model_union = unary_union(list(scenario_geometries.values()))
+    records, fema_meta = load_fema_structures(model_union.bounds)
 
     occ_counts = Counter(str(r.get("OCC_CLS") or "(blank)") for r in records)
     prim_counts = Counter(str(r.get("PRIM_OCC") or "(blank)") for r in records)
@@ -206,7 +219,7 @@ def main() -> None:
     previous_primary_ids: set[int] | None = None
 
     for stage in SCENARIOS:
-        geom = load_scenario_geometry(stage)
+        geom = scenario_geometries[stage]
         indices = tree.query(geom, predicate="intersects")
         matched = [records[int(i)] for i in indices]
 
