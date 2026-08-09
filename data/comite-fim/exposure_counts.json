@@ -1,0 +1,152 @@
+{
+  "generated_at": "2026-08-09T07:50:17.355929+00:00",
+  "method": "FEMA USA Structures representative latitude/longitude point inside the official USGS paired-stage inundation polygon. Residential counts require OCC_CLS or PRIM_OCC to contain 'Residential' and exclude records marked as outbuildings.",
+  "important_caveat": "FEMA USA Structures is a modern inventory, so these are present-day structure-exposure counts for the modeled footprints, not an official count of homes flooded in August 2016.",
+  "sources": {
+    "fema_usa_structures": {
+      "service": "https://services2.arcgis.com/FiaPA4ga0iQKduv3/ArcGIS/rest/services/USA_Structures_View/FeatureServer/0",
+      "service_item_id": "0ec8512ad21e4bb987d7e848d14e7e24",
+      "service_name": "USA_Structures_B",
+      "last_edit": "2026-06-08T18:21:34.830000+00:00",
+      "record_count_in_model_bbox": 56518,
+      "query_bounds_wgs84": [
+        -91.1312622,
+        30.4590345,
+        -90.9268432,
+        30.6490566
+      ]
+    },
+    "usgs_fim": {
+      "study": "USGS SIR 2019-5028",
+      "data_release": "10.5066/P9PQKSYF"
+    }
+  },
+  "classification_diagnostics": {
+    "occ_cls": {
+      "Residential": 47864,
+      "Unclassified": 5474,
+      "Commercial": 2650,
+      "Education": 310,
+      "Agriculture": 108,
+      "Assembly": 60,
+      "Government": 27,
+      "Industrial": 22,
+      "Utility and Misc": 3
+    },
+    "outbuilding": {
+      "(blank)": 56518
+    }
+  },
+  "scenarios": {
+    "27": {
+      "comite_ft": 27,
+      "all_structures": 506,
+      "primary_structures": 506,
+      "residential_structures": 378,
+      "residential_delta_vs_previous": null,
+      "residential_new_vs_previous": null,
+      "residential_dropped_vs_previous": null,
+      "primary_delta_vs_previous": null,
+      "by_parish": {
+        "22033": {
+          "name": "East Baton Rouge Parish",
+          "primary_structures": 297,
+          "residential_structures": 243
+        },
+        "22063": {
+          "name": "Livingston Parish",
+          "primary_structures": 209,
+          "residential_structures": 135
+        }
+      }
+    },
+    "29": {
+      "comite_ft": 29,
+      "all_structures": 1729,
+      "primary_structures": 1729,
+      "residential_structures": 1317,
+      "residential_delta_vs_previous": 939,
+      "residential_new_vs_previous": 939,
+      "residential_dropped_vs_previous": 0,
+      "primary_delta_vs_previous": 1223,
+      "by_parish": {
+        "22033": {
+          "name": "East Baton Rouge Parish",
+          "primary_structures": 1198,
+          "residential_structures": 942
+        },
+        "22063": {
+          "name": "Livingston Parish",
+          "primary_structures": 531,
+          "residential_structures": 375
+        }
+      }
+    },
+    "31": {
+      "comite_ft": 31,
+      "all_structures": 6310,
+      "primary_structures": 6310,
+      "residential_structures": 5359,
+      "residential_delta_vs_previous": 4042,
+      "residential_new_vs_previous": 4042,
+      "residential_dropped_vs_previous": 0,
+      "primary_delta_vs_previous": 4581,
+      "by_parish": {
+        "22033": {
+          "name": "East Baton Rouge Parish",
+          "primary_structures": 4201,
+          "residential_structures": 3627
+        },
+        "22063": {
+          "name": "Livingston Parish",
+          "primary_structures": 2109,
+          "residential_structures": 1732
+        }
+      }
+    },
+    "33": {
+      "comite_ft": 33,
+      "all_structures": 14930,
+      "primary_structures": 14930,
+      "residential_structures": 12857,
+      "residential_delta_vs_previous": 7498,
+      "residential_new_vs_previous": 7498,
+      "residential_dropped_vs_previous": 0,
+      "primary_delta_vs_previous": 8620,
+      "by_parish": {
+        "22033": {
+          "name": "East Baton Rouge Parish",
+          "primary_structures": 10269,
+          "residential_structures": 8860
+        },
+        "22063": {
+          "name": "Livingston Parish",
+          "primary_structures": 4661,
+          "residential_structures": 3997
+        }
+      }
+    },
+    "35": {
+      "comite_ft": 35,
+      "all_structures": 25334,
+      "primary_structures": 25334,
+      "residential_structures": 21966,
+      "residential_delta_vs_previous": 9109,
+      "residential_new_vs_previous": 9109,
+      "residential_dropped_vs_previous": 0,
+      "primary_delta_vs_previous": 10404,
+      "by_parish": {
+        "22033": {
+          "name": "East Baton Rouge Parish",
+          "primary_structures": 18561,
+          "residential_structures": 16060
+        },
+        "22063": {
+          "name": "Livingston Parish",
+          "primary_structures": 6773,
+          "residential_structures": 5906
+        }
+      }
+    }
+  }
+}
