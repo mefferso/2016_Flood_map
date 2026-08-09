@@ -61,8 +61,7 @@ jobs:
           rx = re.compile(r'(?i)(?:^|/)(amcentLA_(\d{2})(\d{2}))\.shp$')
 
           candidates = []
-          archives = sorted(zip_dir.glob('*.zip'))
-          for zp in archives:
+          for zp in sorted(zip_dir.glob('*.zip')):
               with zipfile.ZipFile(zp) as z:
                   for name in z.namelist():
                       m = rx.search(name)
@@ -76,8 +75,6 @@ jobs:
                           })
 
           print('Available paired scenarios:', len(candidates))
-          print('Scenario names:', ' '.join(sorted(c['stem'] for c in candidates)))
-
           selected = {}
           for comite, preferred_amite in desired.items():
               same_stage = [c for c in candidates if c['comite'] == comite]
@@ -96,10 +93,8 @@ jobs:
                   scenario_dir = out_dir / f'comite{comite}'
                   scenario_dir.mkdir(parents=True, exist_ok=True)
                   for member in members:
-                      suffix = Path(member).suffix.lower()
-                      if suffix in {'.shp','.shx','.dbf','.prj','.cpg'}:
-                          target = scenario_dir / Path(member).name
-                          target.write_bytes(z.read(member))
+                      if Path(member).suffix.lower() in {'.shp','.shx','.dbf','.prj','.cpg'}:
+                          (scenario_dir / Path(member).name).write_bytes(z.read(member))
 
           manifest = {
               'source': 'USGS ScienceBase data release 10.5066/P9PQKSYF',
@@ -156,4 +151,7 @@ jobs:
             exit 0
           fi
           git commit -m 'Add local USGS Comite inundation scenario data'
-          git push
+          # The branch may have moved while the large USGS archives were downloading.
+          # Rebase the generated-data commit onto the latest main before pushing.
+          git pull --rebase origin main
+          git push origin main
