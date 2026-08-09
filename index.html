@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Interactive comparison of August 2016 flood inundation, modeled flood depth, surveyed high-water marks, and event-era floodplains across East Baton Rouge and Livingston Parishes."
+      content="Interactive comparison of August 2016 flood inundation, modeled flood depth, surveyed high-water marks, event-era floodplains, and USGS simulated Comite River flood stages across East Baton Rouge and Livingston Parishes."
     />
     <title>August 2016 Baton Rouge Flood Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -19,8 +19,8 @@
           <h1>August 2016 Baton Rouge–Livingston Flood</h1>
           <p class="subtitle">
             Compare the estimated and modeled 2016 inundation with the 1% annual-chance
-            floodplains that were effective during the event, then explore modeled depth
-            and USGS-surveyed high-water marks.
+            floodplains that were effective during the event, then explore modeled depth,
+            USGS-surveyed high-water marks, and simulated Amite–Comite flood scenarios.
           </p>
         </div>
         <button id="sidebarToggle" class="icon-button" type="button" aria-label="Toggle map controls">
@@ -100,6 +100,70 @@
 
           <section class="panel">
             <div class="panel-heading">
+              <h2>Comite River stage scenarios</h2>
+              <span class="panel-tag">USGS FIM</span>
+            </div>
+            <p class="note">
+              USGS modeled the Amite and Comite together because backwater from the Amite changes the Comite
+              flood footprint. These are representative paired-stage scenarios from the official Central flood-
+              inundation library, calibrated to the March and August 2016 floods.
+            </p>
+
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">Comite 27 ft</span>
+                <span class="layer-source">Paired scenario: Amite 50 ft</span>
+              </span>
+              <input type="checkbox" data-layer="comite27" data-comite-fim="true" />
+            </label>
+
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">Comite 29 ft</span>
+                <span class="layer-source">Paired scenario: Amite 52 ft</span>
+              </span>
+              <input type="checkbox" data-layer="comite29" data-comite-fim="true" />
+            </label>
+
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">Comite 31 ft</span>
+                <span class="layer-source">Paired scenario: Amite 55 ft</span>
+              </span>
+              <input type="checkbox" data-layer="comite31" data-comite-fim="true" />
+            </label>
+
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">Comite 33 ft</span>
+                <span class="layer-source">Paired scenario: Amite 57 ft</span>
+              </span>
+              <input type="checkbox" data-layer="comite33" data-comite-fim="true" />
+            </label>
+
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">Comite 35 ft</span>
+                <span class="layer-source">Paired scenario: Amite 59 ft • near/above 2016 record stage</span>
+              </span>
+              <input type="checkbox" data-layer="comite35" data-comite-fim="true" />
+            </label>
+
+            <label class="opacity-row" for="comiteFimOpacity">
+              <span>Scenario opacity</span>
+              <input id="comiteFimOpacity" type="range" min="0" max="1" value="0.58" step="0.05" />
+            </label>
+            <p id="comiteFimStatus" class="layer-status" aria-live="polite">
+              Select a modeled stage to display the USGS inundation scenario.
+            </p>
+            <p class="note">
+              Source: USGS Scientific Investigations Report 2019-5028 and data release DOI 10.5066/P9PQKSYF.
+              Scenario names encode Amite stage first and Comite stage second.
+            </p>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
               <h2>Flood-risk comparison</h2>
               <span class="panel-tag">Event-era DFIRMs</span>
             </div>
@@ -172,8 +236,8 @@
           </div>
           <div class="map-callout">
             <strong>Presentation tip:</strong>
-            Use “Show two-parish comparison,” then switch the modeled depth on. The event-era
-            floodplain outlines make the flooding beyond the mapped 1% zones painfully obvious.
+            Use “Show two-parish comparison,” then switch the modeled depth on. For the Central story,
+            toggle the USGS Comite stage scenarios to show how the simulated flood footprint expands.
           </div>
         </section>
       </main>
@@ -182,5 +246,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/esri-leaflet@3.0.15/dist/esri-leaflet.js"></script>
     <script src="app.js"></script>
+    <script src="comite-fim.js"></script>
   </body>
 </html>
