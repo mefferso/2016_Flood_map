@@ -1,0 +1,36 @@
+{
+  "source": "USGS ScienceBase data release 10.5066/P9PQKSYF",
+  "study": "Storm and Heal (2019), USGS SIR 2019-5028",
+  "gage_pair": {
+    "amite": "07377300 Amite River at Magnolia, LA",
+    "comite": "07378000 Comite River near Comite (Joor Road), LA"
+  },
+  "note": "USGS modeled the rivers together; each map is a paired Amite/Comite stage scenario.",
+  "scenarios": {
+    "27": {
+      "comite_ft": 27,
+      "amite_ft": 50,
+      "source_name": "amcentLA_5027"
+    },
+    "29": {
+      "comite_ft": 29,
+      "amite_ft": 52,
+      "source_name": "amcentLA_5229"
+    },
+    "31": {
+      "comite_ft": 31,
+      "amite_ft": 55,
+      "source_name": "amcentLA_5531"
+    },
+    "33": {
+      "comite_ft": 33,
+      "amite_ft": 57,
+      "source_name": "amcentLA_5733"
+    },
+    "35": {
+      "comite_ft": 35,
+      "amite_ft": 59,
+      "source_name": "amcentLA_5935"
+    }
+  }
+}
