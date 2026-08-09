@@ -27,6 +27,7 @@ const COMITE_FIM_COLORS = {
 };
 
 let comiteFimOpacity = 0.58;
+let structureExposurePayload = null;
 const comiteLoadState = {};
 
 function scenarioStyle(key) {
@@ -77,6 +78,167 @@ function updateComiteStatus() {
     `Showing USGS paired-stage scenario${labels.length > 1 ? "s" : ""}: ${labels.join("; ")}.`,
     "success",
   );
+}
+
+function installScenarioSummaryStyles() {
+  if (document.getElementById("comiteSummaryStyles")) return;
+  const style = document.createElement("style");
+  style.id = "comiteSummaryStyles";
+  style.textContent = `
+    .map-callout.comite-summary {
+      width: min(390px, calc(100% - 1.6rem));
+      padding: 0.85rem 0.95rem 0.78rem;
+      border: 1px solid rgba(15, 42, 60, 0.22);
+      border-left: 0;
+      border-radius: 0.75rem;
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: 0 16px 40px rgba(25, 45, 66, 0.20);
+    }
+    .comite-summary-title {
+      margin-bottom: 0.12rem;
+      color: #102133;
+      font-size: 0.92rem;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+    }
+    .comite-summary-subtitle {
+      margin-bottom: 0.58rem;
+      color: #5d6b79;
+      font-size: 0.66rem;
+      line-height: 1.3;
+    }
+    .comite-summary-rows {
+      display: grid;
+      gap: 0.48rem;
+    }
+    .comite-summary-row {
+      display: grid;
+      grid-template-columns: 12px 1fr auto;
+      align-items: center;
+      gap: 0.58rem;
+      padding: 0.52rem 0.58rem;
+      border: 1px solid #e2e8ed;
+      border-radius: 0.56rem;
+      background: #f8fafb;
+    }
+    .comite-summary-swatch {
+      width: 11px;
+      height: 34px;
+      border-radius: 999px;
+    }
+    .comite-summary-stage {
+      color: #102133;
+      font-size: 0.78rem;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+    .comite-summary-pair {
+      margin-top: 0.12rem;
+      color: #687985;
+      font-size: 0.61rem;
+      line-height: 1.2;
+    }
+    .comite-summary-count {
+      min-width: 100px;
+      text-align: right;
+    }
+    .comite-summary-number {
+      display: block;
+      color: #102133;
+      font-size: 1.18rem;
+      font-weight: 950;
+      line-height: 1;
+      letter-spacing: -0.025em;
+    }
+    .comite-summary-label {
+      display: block;
+      margin-top: 0.13rem;
+      color: #5d6b79;
+      font-size: 0.57rem;
+      line-height: 1.15;
+    }
+    .comite-summary-delta {
+      display: block;
+      margin-top: 0.12rem;
+      color: #17633b;
+      font-size: 0.58rem;
+      font-weight: 800;
+    }
+    .comite-summary-footnote {
+      margin-top: 0.55rem;
+      color: #697b87;
+      font-size: 0.56rem;
+      line-height: 1.3;
+    }
+    @media (max-width: 820px) {
+      .map-callout.comite-summary {
+        bottom: 1.5rem;
+        width: min(360px, calc(100% - 1.2rem));
+      }
+      .comite-summary-number { font-size: 1.02rem; }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function updateScenarioSummary() {
+  installScenarioSummaryStyles();
+
+  // Reuse the old presentation-tip box so that tip disappears completely and
+  // the same map real estate becomes useful presentation information instead.
+  const summary = document.querySelector(".map-callout");
+  if (!summary) return;
+
+  const active = activeScenarioKeys();
+  summary.classList.add("comite-summary");
+
+  if (!active.length) {
+    summary.style.display = "none";
+    summary.innerHTML = "";
+    return;
+  }
+
+  summary.style.display = "block";
+
+  const rows = active
+    .sort((a, b) => COMITE_FIM_SCENARIOS[a].comite - COMITE_FIM_SCENARIOS[b].comite)
+    .map((key) => {
+      const scenario = COMITE_FIM_SCENARIOS[key];
+      const exposure = structureExposurePayload?.scenarios?.[String(scenario.comite)];
+      const count = exposure ? formatExposureCount(exposure.residential_structures) : "…";
+      const delta = exposure?.residential_delta_vs_previous;
+      const deltaHtml =
+        delta === null || delta === undefined
+          ? ""
+          : `<span class="comite-summary-delta">+${formatExposureCount(delta)} vs prior stage</span>`;
+      const recordText = scenario.comite === 35 ? " · near/above 2016 record-stage scenario" : "";
+
+      return `
+        <div class="comite-summary-row">
+          <span class="comite-summary-swatch" style="background:${COMITE_FIM_COLORS[key]}"></span>
+          <div>
+            <div class="comite-summary-stage">Comite ${scenario.comite} ft</div>
+            <div class="comite-summary-pair">Paired Amite stage: ${scenario.amite} ft${recordText}</div>
+          </div>
+          <div class="comite-summary-count">
+            <span class="comite-summary-number">${count}</span>
+            <span class="comite-summary-label">residential structures<br>in modeled footprint</span>
+            ${deltaHtml}
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  summary.innerHTML = `
+    <div class="comite-summary-title">Modeled flood exposure by river stage</div>
+    <div class="comite-summary-subtitle">USGS paired Amite–Comite inundation scenarios</div>
+    <div class="comite-summary-rows">${rows}</div>
+    <div class="comite-summary-footnote">
+      Counts use the modern FEMA USA Structures inventory. They represent present-day residential
+      structures within each modeled footprint, not an official count of homes flooded in 2016.
+    </div>
+  `;
 }
 
 async function ensureComiteScenario(key) {
@@ -132,20 +294,26 @@ for (const input of stageInputs) {
 
     if (!input.checked) {
       updateComiteStatus();
+      updateScenarioSummary();
       return;
     }
 
+    // Update immediately so the audience sees the selected scenario/count while
+    // the local polygon is loading.
+    updateScenarioSummary();
     input.disabled = true;
     try {
       await ensureComiteScenario(key);
       // app.js normally adds the layer first; this also covers a direct call or race.
       if (!map.hasLayer(layers[key])) layers[key].addTo(map);
       updateComiteStatus();
+      updateScenarioSummary();
       map.flyTo([30.535, -91.03], Math.max(map.getZoom(), 11), { duration: 0.65 });
     } catch (error) {
       input.checked = false;
       if (map.hasLayer(layers[key])) map.removeLayer(layers[key]);
       setComiteStatus(error.message, "error");
+      updateScenarioSummary();
     } finally {
       input.disabled = false;
     }
@@ -194,6 +362,7 @@ async function loadStructureExposureCounts() {
     const response = await fetch("data/comite-fim/exposure_counts.json", { cache: "no-cache" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
+    structureExposurePayload = payload;
 
     for (const [key, scenario] of Object.entries(COMITE_FIM_SCENARIOS)) {
       const item = payload?.scenarios?.[String(scenario.comite)];
@@ -217,12 +386,17 @@ async function loadStructureExposureCounts() {
         `Livingston: ${formatExposureCount(liv)}. All primary structures: ` +
         `${formatExposureCount(item.primary_structures)}.`;
     }
+
+    updateScenarioSummary();
   } catch (error) {
+    structureExposurePayload = null;
     for (const el of document.querySelectorAll(".exposure-count")) {
       el.textContent = "Residential exposure count unavailable";
     }
+    updateScenarioSummary();
     console.warn("Could not load Comite structure exposure counts:", error);
   }
 }
 
 loadStructureExposureCounts();
+updateScenarioSummary();
