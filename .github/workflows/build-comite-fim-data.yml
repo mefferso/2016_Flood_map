@@ -1,0 +1,159 @@
+name: Build local Comite FIM layers
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-comite-fim-data.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install GDAL
+        shell: bash
+        run: |
+          if ! command -v ogr2ogr >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y gdal-bin
+          fi
+          ogr2ogr --version
+
+      - name: Download official USGS scenario archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          ITEM=5b28123ae4b0592076260622
+          mkdir -p /tmp/comite-zips
+          for ZIP in \
+            Amite_Comite_Maps52_75.zip \
+            Amite_Comite_Maps76_103.zip \
+            Amite_Comite_Maps104_127.zip
+          do
+            echo "Downloading $ZIP"
+            curl -L --fail --retry 4 --retry-delay 3 \
+              "https://www.sciencebase.gov/catalog/file/get/${ITEM}?name=${ZIP}" \
+              -o "/tmp/comite-zips/${ZIP}"
+          done
+          ls -lh /tmp/comite-zips
+
+      - name: Select and extract representative paired-stage shapefiles
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/comite-shapes data/comite-fim
+          mkdir -p /tmp/comite-shapes data/comite-fim
+          python - <<'PY'
+          import json, re, zipfile
+          from pathlib import Path
+
+          zip_dir = Path('/tmp/comite-zips')
+          out_dir = Path('/tmp/comite-shapes')
+          desired = {27: 50, 29: 52, 31: 55, 33: 57, 35: 59}
+          rx = re.compile(r'(?i)(?:^|/)(amcentLA_(\d{2})(\d{2}))\.shp$')
+
+          candidates = []
+          archives = sorted(zip_dir.glob('*.zip'))
+          for zp in archives:
+              with zipfile.ZipFile(zp) as z:
+                  for name in z.namelist():
+                      m = rx.search(name)
+                      if m:
+                          candidates.append({
+                              'zip': zp,
+                              'member': name,
+                              'stem': m.group(1),
+                              'amite': int(m.group(2)),
+                              'comite': int(m.group(3)),
+                          })
+
+          print('Available paired scenarios:', len(candidates))
+          print('Scenario names:', ' '.join(sorted(c['stem'] for c in candidates)))
+
+          selected = {}
+          for comite, preferred_amite in desired.items():
+              same_stage = [c for c in candidates if c['comite'] == comite]
+              if not same_stage:
+                  raise SystemExit(f'No official USGS scenario found for Comite {comite} ft')
+              chosen = min(same_stage, key=lambda c: (abs(c['amite'] - preferred_amite), c['amite']))
+              selected[comite] = chosen
+              print(f"Comite {comite}: selected {chosen['stem']} from {chosen['zip'].name}")
+
+              with zipfile.ZipFile(chosen['zip']) as z:
+                  shp_path = Path(chosen['member'])
+                  parent = shp_path.parent
+                  basename = shp_path.stem
+                  members = [n for n in z.namelist()
+                             if Path(n).parent == parent and Path(n).stem.lower() == basename.lower()]
+                  scenario_dir = out_dir / f'comite{comite}'
+                  scenario_dir.mkdir(parents=True, exist_ok=True)
+                  for member in members:
+                      suffix = Path(member).suffix.lower()
+                      if suffix in {'.shp','.shx','.dbf','.prj','.cpg'}:
+                          target = scenario_dir / Path(member).name
+                          target.write_bytes(z.read(member))
+
+          manifest = {
+              'source': 'USGS ScienceBase data release 10.5066/P9PQKSYF',
+              'study': 'Storm and Heal (2019), USGS SIR 2019-5028',
+              'gage_pair': {
+                  'amite': '07377300 Amite River at Magnolia, LA',
+                  'comite': '07378000 Comite River near Comite (Joor Road), LA'
+              },
+              'note': 'USGS modeled the rivers together; each map is a paired Amite/Comite stage scenario.',
+              'scenarios': {
+                  str(k): {'comite_ft': k, 'amite_ft': v['amite'], 'source_name': v['stem']}
+                  for k, v in selected.items()
+              }
+          }
+          Path('data/comite-fim/manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          PY
+
+      - name: Convert official shapefiles to web GeoJSON
+        shell: bash
+        run: |
+          set -euo pipefail
+          for STAGE in 27 29 31 33 35; do
+            SHP=$(find "/tmp/comite-shapes/comite${STAGE}" -iname '*.shp' -print -quit)
+            test -n "$SHP"
+            echo "Converting $SHP"
+            ogr2ogr \
+              -f GeoJSON \
+              -t_srs EPSG:4326 \
+              -makevalid \
+              -simplify 3 \
+              -lco RFC7946=YES \
+              "data/comite-fim/comite${STAGE}.geojson" \
+              "$SHP"
+          done
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for p in Path('data/comite-fim').glob('*.geojson'):
+              obj=json.loads(p.read_text())
+              p.write_text(json.dumps(obj, separators=(',',':')))
+              print(p, f'{p.stat().st_size/1024/1024:.2f} MB')
+          PY
+
+      - name: Commit generated local layers
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/comite-fim
+          if git diff --cached --quiet; then
+            echo 'No generated-data changes.'
+            exit 0
+          fi
+          git commit -m 'Add local USGS Comite inundation scenario data'
+          git push
