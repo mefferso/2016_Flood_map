@@ -14,6 +14,8 @@ const DEPTH_SERVICE_URL =
   "https://tiles.arcgis.com/tiles/u5yHfzprqJwnv49V/arcgis/rest/services/August_2016_Flood_Depth_Feet/MapServer";
 const DEPTH_TILE_URL = `${DEPTH_SERVICE_URL}/tile/{z}/{y}/{x}`;
 const STN_SERVICE_ROOT = "https://stn.wim.usgs.gov/STNServices";
+const CENSUS_ZCTA_URL =
+  "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/PUMA_TAD_TAZ_UGA_ZCTA/MapServer/7";
 
 const map = L.map("map", {
   center: REGIONAL_VIEW.center,
@@ -181,6 +183,47 @@ layers.fema = L.esri.featureLayer({
       <div class="popup-footnote">Current effective FEMA NFHL, shown in purple for reference.</div>
     `);
   },
+});
+
+const communityBoundaryLabels = L.layerGroup();
+layers.communityBoundaries = L.esri.featureLayer({
+  url: CENSUS_ZCTA_URL,
+  where: "ZCTA5 IN ('70818','70739')",
+  simplifyFactor: 0.35,
+  precision: 5,
+  style: {
+    color: "#111827",
+    dashArray: "9 5",
+    weight: 3,
+    opacity: 0.95,
+    fillColor: "#ffffff",
+    fillOpacity: 0.03,
+  },
+  onEachFeature(feature, layer) {
+    const zip = String(feature?.properties?.ZCTA5 || feature?.properties?.BASENAME || "");
+    const name = zip === "70818" ? "Central" : zip === "70739" ? "Greenwell Springs" : "Community";
+    layer.bindPopup(`
+      <div class="popup-title">${escapeHtml(name)}</div>
+      <div>2020 Census ZIP Code Tabulation Area boundary.</div>
+      <div class="popup-footnote">Source: U.S. Census Bureau TIGERweb.</div>
+    `);
+    layer.once("add", () => {
+      const center = layer.getBounds().getCenter();
+      L.marker(center, {
+        interactive: false,
+        icon: L.divIcon({
+          className: "community-boundary-label",
+          html: `<span>${escapeHtml(name)}</span>`,
+          iconSize: null,
+        }),
+      }).addTo(communityBoundaryLabels);
+    });
+  },
+});
+layers.communityBoundaries.on("add", () => communityBoundaryLabels.addTo(map));
+layers.communityBoundaries.on("remove", () => {
+  map.removeLayer(communityBoundaryLabels);
+  communityBoundaryLabels.clearLayers();
 });
 
 layers.highWaterMarks = L.layerGroup();
@@ -429,6 +472,7 @@ function setLayerOpacity(layerName, opacity) {
     const edgeBoost =
       layerName === "fema" ? 0.6 :
       layerName === "firm2012" || layerName === "livingstonFirm2012" ? 0.5 :
+      layerName === "communityBoundaries" ? 0.8 :
       0.38;
     layer.setStyle({
       fillOpacity: opacity,
@@ -480,7 +524,7 @@ document.getElementById("resetButton").addEventListener("click", () => {
 
 document.getElementById("comparisonButton").addEventListener("click", async () => {
   const primaryLayers = ["inundation", "modeledExtent", "firm2012", "livingstonFirm2012"];
-  const secondaryLayers = ["fema", "depth", "highWaterMarks"];
+  const secondaryLayers = ["fema", "depth", "highWaterMarks", "communityBoundaries"];
 
   for (const name of primaryLayers) {
     await setLayerVisibility(name, true);
