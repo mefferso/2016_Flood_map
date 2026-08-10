@@ -91,6 +91,18 @@
             </label>
             <p id="hwmStatus" class="layer-status" aria-live="polite"></p>
 
+            <label class="layer-row">
+              <span class="layer-copy">
+                <span class="layer-name">Central & Greenwell Springs boundaries</span>
+                <span class="layer-source">2020 Census ZIP-area boundaries with place labels</span>
+              </span>
+              <input type="checkbox" data-layer="communityBoundaries" />
+            </label>
+            <label class="opacity-row" for="communityBoundariesOpacity">
+              <span>Fill opacity</span>
+              <input id="communityBoundariesOpacity" type="range" min="0" max="0.25" value="0.03" step="0.01" data-opacity="communityBoundaries" />
+            </label>
+
             <p class="note">
               Livingston Parish did not publish the same response-compiled polygon used by East Baton Rouge.
               Its 2016 inundation is shown from the basin-wide modeled depth raster; the “extent” layer is a
