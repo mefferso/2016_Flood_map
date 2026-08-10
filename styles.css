@@ -419,6 +419,28 @@ button { cursor: pointer; }
   line-height: 1.4;
 }
 
+.community-boundary-label {
+  width: auto !important;
+  height: auto !important;
+  background: transparent;
+  border: 0;
+}
+
+.community-boundary-label span {
+  display: inline-block;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  padding: 0.24rem 0.42rem;
+  border: 1px solid rgba(17, 24, 39, 0.5);
+  border-radius: 0.34rem;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.01em;
+}
+
 .leaflet-control-zoom a,
 .leaflet-control-attribution {
   font-family: "Aptos", "Segoe UI", Arial, sans-serif;
