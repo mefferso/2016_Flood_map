@@ -29,11 +29,10 @@ L.control.scale({ position: "bottomleft", imperial: true, metric: false }).addTo
 
 const basemaps = {
   light: L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
     {
-      maxZoom: 20,
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      maxZoom: 16,
+      attribution: "Tiles &copy; Esri",
     },
   ),
   streets: L.tileLayer(
